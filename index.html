@@ -128,6 +128,34 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 20px 40px -12px rgba(0,0,0,0.5);
   }
 
+  .kbd {
+    background: var(--bg-1);
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 11.5px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .toast {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    animation: toastIn .2s ease-out;
+    max-width: 280px;
+  }
+  .toast.error { border-left-color: var(--danger); }
+  .toast.fade-out { animation: toastOut .25s ease-in forwards; }
+  @keyframes toastIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes toastOut { from { opacity:1; } to { opacity:0; transform: translateY(-6px); } }
+
   .stage { flex: 1; min-width: 0; }
   .stage-toolbar {
     display: flex;
@@ -307,11 +335,34 @@
       </g>
     </svg>
   </div>
-  <div>
+  <div style="flex:1;">
     <div class="app-title">TagFix</div>
     <div class="app-tagline">Editor de preços em imagens — corrige o que a IA errou, mantendo o visual original</div>
   </div>
+  <button type="button" id="btnShortcuts" class="icon-btn" title="Atalhos de teclado">⌘ <span style="font-size:12px;">Atalhos</span></button>
 </header>
+
+<div id="shortcutsModal" style="display:none; position:fixed; inset:0; background:rgba(10,7,20,0.7); backdrop-filter: blur(2px); z-index:300; align-items:center; justify-content:center;">
+  <div class="card" style="max-width:400px; width:90%;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <p class="panel-title" style="margin:0;">Atalhos de teclado</p>
+      <button type="button" id="btnCloseShortcuts" class="icon-btn" style="padding:4px 9px;">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:var(--text-secondary);">
+      <div style="display:flex; justify-content:space-between;"><span>Desfazer última alteração</span><kbd class="kbd">Ctrl/⌘ + Z</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Duplicar texto selecionado</span><kbd class="kbd">Ctrl/⌘ + D</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Exportar imagem</span><kbd class="kbd">Ctrl/⌘ + S</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Remover texto selecionado</span><kbd class="kbd">Delete</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Mover texto 1px</span><kbd class="kbd">↑ ↓ ← →</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Mover texto 10px</span><kbd class="kbd">Shift + setas</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Cancelar ação / fechar</span><kbd class="kbd">Esc</kbd></div>
+      <div style="display:flex; justify-content:space-between;"><span>Mostrar este painel</span><kbd class="kbd">?</kbd></div>
+    </div>
+    <p class="hint" style="margin-top:14px;">Dica: ao arrastar ou redimensionar um texto perto de uma guia, ele se alinha automaticamente (snap).</p>
+  </div>
+</div>
+
+<div id="toastContainer" style="position:fixed; bottom:20px; right:20px; z-index:400; display:flex; flex-direction:column; gap:8px; align-items:flex-end;"></div>
 
 <main class="workspace">
 <div class="layout">
@@ -393,21 +444,21 @@
             <div class="field">
               <label>Fonte</label>
               <select id="fFamily">
-                <option value="Arial, sans-serif">Arial</option>
-                <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
-                <option value="Georgia, serif">Georgia</option>
-                <option value="'Times New Roman', Times, serif">Times New Roman</option>
-                <option value="Verdana, sans-serif">Verdana</option>
-                <option value="Tahoma, sans-serif">Tahoma</option>
-                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                <option value="'Palatino Linotype', Palatino, serif">Palatino</option>
-                <option value="Garamond, serif">Garamond</option>
-                <option value="'Century Gothic', sans-serif">Century Gothic</option>
-                <option value="'Lucida Sans Unicode', sans-serif">Lucida Sans</option>
-                <option value="'Courier New', monospace">Courier New</option>
-                <option value="Impact, sans-serif">Impact</option>
-                <option value="'Comic Sans MS', sans-serif">Comic Sans MS</option>
-                <option value="'Brush Script MT', cursive">Brush Script</option>
+                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</option>
+                <option value="'Helvetica Neue', Helvetica, sans-serif" style="font-family: 'Helvetica Neue', Helvetica, sans-serif;">Helvetica</option>
+                <option value="Georgia, serif" style="font-family: Georgia, serif;">Georgia</option>
+                <option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif;">Times New Roman</option>
+                <option value="Verdana, sans-serif" style="font-family: Verdana, sans-serif;">Verdana</option>
+                <option value="Tahoma, sans-serif" style="font-family: Tahoma, sans-serif;">Tahoma</option>
+                <option value="'Trebuchet MS', sans-serif" style="font-family: 'Trebuchet MS', sans-serif;">Trebuchet MS</option>
+                <option value="'Palatino Linotype', Palatino, serif" style="font-family: 'Palatino Linotype', Palatino, serif;">Palatino</option>
+                <option value="Garamond, serif" style="font-family: Garamond, serif;">Garamond</option>
+                <option value="'Century Gothic', sans-serif" style="font-family: 'Century Gothic', sans-serif;">Century Gothic</option>
+                <option value="'Lucida Sans Unicode', sans-serif" style="font-family: 'Lucida Sans Unicode', sans-serif;">Lucida Sans</option>
+                <option value="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</option>
+                <option value="Impact, sans-serif" style="font-family: Impact, sans-serif;">Impact</option>
+                <option value="'Comic Sans MS', sans-serif" style="font-family: 'Comic Sans MS', sans-serif;">Comic Sans MS</option>
+                <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script</option>
               </select>
             </div>
             <div class="row2">
@@ -616,6 +667,32 @@
     </div>
 
     <div class="card">
+      <p class="panel-title" style="margin-bottom:10px;">Grade de guias</p>
+      <div class="row2">
+        <div class="field" style="margin-bottom:0;">
+          <label>Linhas</label>
+          <input type="number" id="gridRows" value="3" min="1" max="30">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Colunas</label>
+          <input type="number" id="gridCols" value="1" min="1" max="30">
+        </div>
+      </div>
+      <button type="button" id="btnGenGrid" style="width:100%; margin-top:10px;" disabled>📐 Gerar grade de guias</button>
+      <p class="hint">Cria guias uniformemente espaçadas — ótimo para alinhar linhas de uma tabela de preços de uma vez só. Textos "grudam" (snap) nas guias ao arrastar.</p>
+    </div>
+
+    <div class="card">
+      <p class="panel-title" style="margin-bottom:10px;">Projeto</p>
+      <div class="row2">
+        <div class="field" style="margin-bottom:0;"><button type="button" id="btnSaveProject" style="width:100%;" disabled>💾 Salvar</button></div>
+        <div class="field" style="margin-bottom:0;"><button type="button" id="btnLoadProject" style="width:100%;">📂 Abrir</button></div>
+      </div>
+      <input type="file" id="projectFileInput" accept="application/json,.json">
+      <p class="hint">Salva tudo — imagem, textos pendentes e guias — num arquivo pra continuar de onde parou depois.</p>
+    </div>
+
+    <div class="card">
       <p class="panel-title" style="margin-bottom:6px;">Dicas</p>
       <p class="hint">Réguas e guias: arraste da régua do topo para criar uma guia horizontal, ou da régua da esquerda para uma vertical. Clique numa guia e arraste para movê-la; solte fora da imagem para remover. As guias nunca aparecem na imagem exportada.</p>
       <p class="hint">Fluxo recomendado: ajuste o texto, clique em <strong>Aceitar alteração</strong> para gravá-lo na imagem, e siga para o próximo preço.</p>
@@ -657,6 +734,29 @@ let guides = { h: [], v: [] };
 let activeGuideDrag = null;
 
 // ==================== Modo / status bar ====================
+// ==================== Notificações (toast) ====================
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'error' ? ' error' : '');
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 260);
+  }, 2200);
+}
+
+// ==================== Modal de atalhos ====================
+const shortcutsModal = document.getElementById('shortcutsModal');
+function toggleShortcutsModal(forceState) {
+  const show = forceState !== undefined ? forceState : (shortcutsModal.style.display === 'none');
+  shortcutsModal.style.display = show ? 'flex' : 'none';
+}
+document.getElementById('btnShortcuts').addEventListener('click', () => toggleShortcutsModal(true));
+document.getElementById('btnCloseShortcuts').addEventListener('click', () => toggleShortcutsModal(false));
+shortcutsModal.addEventListener('click', e => { if (e.target === shortcutsModal) toggleShortcutsModal(false); });
+
 function enterMode(newMode, label) {
   mode = newMode;
   const bar = document.getElementById('modeStatus');
@@ -708,6 +808,8 @@ function loadImageFile(file) {
       applyZoom();
       btnAddText.disabled = false;
       btnExport.disabled = false;
+      document.getElementById('btnGenGrid').disabled = false;
+      document.getElementById('btnSaveProject').disabled = false;
       redraw();
     };
     img.src = ev.target.result;
@@ -838,6 +940,18 @@ document.addEventListener('mouseup', e => {
   redraw();
 });
 document.getElementById('btnClearGuides').addEventListener('click', () => { guides = { h: [], v: [] }; redraw(); });
+
+document.getElementById('btnGenGrid').addEventListener('click', () => {
+  if (!baseImage) return;
+  const rows = Math.max(1, parseInt(document.getElementById('gridRows').value) || 1);
+  const cols = Math.max(1, parseInt(document.getElementById('gridCols').value) || 1);
+  guides = { h: [], v: [] };
+  for (let i = 1; i < rows; i++) guides.h.push(Math.round((canvas.height / rows) * i));
+  for (let i = 1; i < cols; i++) guides.v.push(Math.round((canvas.width / cols) * i));
+  document.getElementById('btnClearGuides').disabled = false;
+  redraw();
+  showToast('📐 Grade de guias gerada');
+});
 
 // ==================== Alças de redimensionar ====================
 function getHandles(box) {
@@ -1080,6 +1194,25 @@ canvas.addEventListener('mousedown', e => {
   }
 });
 
+const SNAP_TOL = 6;
+function snapValue(raw, guideArr, tol) {
+  let best = null, bestDist = tol + 1;
+  for (const g of guideArr) { const d = Math.abs(raw - g); if (d <= tol && d < bestDist) { bestDist = d; best = g; } }
+  return best !== null ? best : raw;
+}
+function snapPosition(raw, size, guideArr, tol) {
+  const offsets = [0, size, size / 2];
+  let best = null, bestDist = tol + 1;
+  for (const offset of offsets) {
+    const edgeVal = raw + offset;
+    for (const g of guideArr) {
+      const d = Math.abs(edgeVal - g);
+      if (d <= tol && d < bestDist) { bestDist = d; best = g - offset; }
+    }
+  }
+  return best !== null ? best : raw;
+}
+
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
@@ -1091,10 +1224,12 @@ canvas.addEventListener('mousemove', e => {
     const box = textBoxes.find(b => b.id === selectedId);
     if (box) {
       const MIN = 10;
-      if (resizeHandle === 'right') box.w = Math.max(MIN, x - box.x);
-      else if (resizeHandle === 'left') { const newW = Math.max(MIN, (box.x + box.w) - x); box.x = (box.x + box.w) - newW; box.w = newW; }
-      else if (resizeHandle === 'bottom') box.h = Math.max(MIN, y - box.y);
-      else if (resizeHandle === 'top') { const newH = Math.max(MIN, (box.y + box.h) - y); box.y = (box.y + box.h) - newH; box.h = newH; }
+      const sx = snapValue(x, guides.v, SNAP_TOL);
+      const sy = snapValue(y, guides.h, SNAP_TOL);
+      if (resizeHandle === 'right') box.w = Math.max(MIN, sx - box.x);
+      else if (resizeHandle === 'left') { const newW = Math.max(MIN, (box.x + box.w) - sx); box.x = (box.x + box.w) - newW; box.w = newW; }
+      else if (resizeHandle === 'bottom') box.h = Math.max(MIN, sy - box.y);
+      else if (resizeHandle === 'top') { const newH = Math.max(MIN, (box.y + box.h) - sy); box.y = (box.y + box.h) - newH; box.h = newH; }
       fBoxW.value = Math.round(box.w); fBoxH.value = Math.round(box.h);
       fPosX.value = Math.round(box.x); fPosY.value = Math.round(box.y);
       redraw();
@@ -1105,7 +1240,8 @@ canvas.addEventListener('mousemove', e => {
   if (mode === 'dragging') {
     const box = textBoxes.find(b => b.id === selectedId);
     if (box) {
-      box.x = x - dragOffset.x; box.y = y - dragOffset.y;
+      box.x = snapPosition(x - dragOffset.x, box.w, guides.v, SNAP_TOL);
+      box.y = snapPosition(y - dragOffset.y, box.h, guides.h, SNAP_TOL);
       fPosX.value = Math.round(box.x); fPosY.value = Math.round(box.y);
       redraw();
     }
@@ -1145,6 +1281,40 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') box.x += step;
   fPosX.value = Math.round(box.x); fPosY.value = Math.round(box.y);
   redraw();
+});
+
+// ==================== Atalhos globais ====================
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  const inField = (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA');
+  const mod = e.ctrlKey || e.metaKey;
+
+  if (shortcutsModal.style.display === 'flex' && e.key === 'Escape') { toggleShortcutsModal(false); return; }
+
+  if (!inField && e.key === '?') { e.preventDefault(); toggleShortcutsModal(true); return; }
+
+  if (mod && e.key.toLowerCase() === 'z' && !inField) {
+    e.preventDefault();
+    const btn = document.getElementById('btnUndo');
+    if (!btn.disabled) btn.click();
+    return;
+  }
+  if (mod && e.key.toLowerCase() === 'd' && !inField && selectedId !== null) {
+    e.preventDefault();
+    document.getElementById('btnDuplicate').click();
+    return;
+  }
+  if (mod && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    const btn = document.getElementById('btnExport');
+    if (!btn.disabled) btn.click();
+    return;
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !inField && selectedId !== null) {
+    e.preventDefault();
+    document.getElementById('btnDelete').click();
+    return;
+  }
 });
 
 // ==================== Painel — referências ====================
@@ -1391,6 +1561,7 @@ document.getElementById('presetDark').addEventListener('click', () => {
   loadBoxIntoPanel(box);
   redraw();
   updateList();
+  showToast('🏷️ Estilo etiqueta escura aplicado');
 });
 document.getElementById('presetLight').addEventListener('click', () => {
   const box = currentBox(); if (!box) return;
@@ -1403,6 +1574,7 @@ document.getElementById('presetLight').addEventListener('click', () => {
   loadBoxIntoPanel(box);
   redraw();
   updateList();
+  showToast('🏷️ Estilo etiqueta clara aplicado');
 });
 
 // ---- Camadas ----
@@ -1434,6 +1606,7 @@ document.getElementById('btnDuplicate').addEventListener('click', () => {
   loadBoxIntoPanel(copy);
   updateList();
   redraw();
+  showToast('⧉ Texto duplicado');
 });
 
 // ---- Aceitar / Desfazer / Remover ----
@@ -1450,6 +1623,7 @@ btnAccept.addEventListener('click', () => {
   panelForm.style.display = 'none';
   updateList();
   redraw();
+  showToast('✓ Preço gravado na imagem');
 });
 btnUndo.addEventListener('click', () => {
   if (history.length === 0) return;
@@ -1457,6 +1631,7 @@ btnUndo.addEventListener('click', () => {
   bakedCtx.putImageData(snapshot, 0, 0);
   btnUndo.disabled = history.length === 0;
   redraw();
+  showToast('↺ Última alteração desfeita');
 });
 btnDelete.addEventListener('click', () => {
   textBoxes = textBoxes.filter(b => b.id !== selectedId);
@@ -1465,6 +1640,7 @@ btnDelete.addEventListener('click', () => {
   panelForm.style.display = 'none';
   updateList();
   redraw();
+  showToast('Texto removido');
 });
 
 function updateList() {
@@ -1479,6 +1655,75 @@ function updateList() {
     list.appendChild(item);
   });
 }
+
+// ==================== Salvar / Abrir projeto ====================
+document.getElementById('btnSaveProject').addEventListener('click', () => {
+  if (!baseImage) return;
+  const data = {
+    type: 'tagfix-project',
+    version: 1,
+    bakedImage: bakedCanvas.toDataURL('image/png'),
+    textBoxes: textBoxes,
+    guides: guides,
+    nextId: nextId
+  };
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'tagfix-projeto.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Projeto salvo');
+});
+
+const projectFileInput = document.getElementById('projectFileInput');
+document.getElementById('btnLoadProject').addEventListener('click', () => projectFileInput.click());
+projectFileInput.addEventListener('change', e => {
+  if (!e.target.files.length) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.type !== 'tagfix-project') throw new Error('formato inválido');
+      const img = new Image();
+      img.onload = () => {
+        baseImage = img;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        bakedCanvas.width = img.width;
+        bakedCanvas.height = img.height;
+        bakedCtx.drawImage(img, 0, 0);
+        history = [];
+        btnUndo.disabled = true;
+        textBoxes = data.textBoxes || [];
+        guides = data.guides || { h: [], v: [] };
+        nextId = data.nextId || (textBoxes.reduce((m, b) => Math.max(m, b.id), 0) + 1);
+        selectedId = null;
+        panelEmpty.style.display = 'block';
+        panelForm.style.display = 'none';
+        dropzone.style.display = 'none';
+        document.getElementById('rulerGrid').style.display = 'grid';
+        drawRulers();
+        zoomLevel = 1;
+        applyZoom();
+        document.getElementById('btnClearGuides').disabled = false;
+        document.getElementById('btnGenGrid').disabled = false;
+        document.getElementById('btnSaveProject').disabled = false;
+        btnAddText.disabled = false;
+        btnExport.disabled = false;
+        updateList();
+        redraw();
+        showToast('📂 Projeto carregado');
+      };
+      img.src = data.bakedImage;
+    } catch (err) {
+      showToast('❌ Arquivo de projeto inválido', 'error');
+    }
+  };
+  reader.readAsText(e.target.files[0]);
+  projectFileInput.value = '';
+});
 
 // ==================== Exportar ====================
 btnExport.addEventListener('click', () => {
@@ -1495,6 +1740,7 @@ btnExport.addEventListener('click', () => {
   guides = savedGuides;
   activeGuideDrag = savedDrag;
   redraw();
+  showToast('⬇ Imagem exportada');
 });
 </script>
 
